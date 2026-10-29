@@ -32,7 +32,8 @@ return a **`taskId`**.
 - **rules** — a JSON **array** of operations: `{action, data}` where `action ∈ create | update | delete`.
 - **data** — identifies the grantee by **exactly one** of `userId` | `saId` | `groupId`, plus:
   - **privs** — `{view, modify, remove (required booleans), sign?, ds?, execute?}`. `view` is
-    implied when any other privilege is set.
+    implied when any other privilege is set, except in the actors access of a system form, where
+    it must be set explicitly (see below).
   - **reactionOrders?** — `{sign, ds, execute}` positive integers ordering those reactions
     (same number = parallel, higher waits for lower). **Optional** — pass it only to set a
     sequence. A user holding `sign`/`ds`/`execute` without an order still counts toward task
@@ -108,9 +109,11 @@ actor of that form, existing and new; deleting the rule revokes it. The backend 
 - **Whom:** only **API keys** (`userId` of a user of type `api`) can be **added**. Adding a person
   or a group returns **400**: share the individual actors instead. Existing rules of any grantee
   can still be updated or deleted.
-- **What:** only `privs.view` and `privs.modify` are applied. The other privileges of an
-  existing rule stay as they are; `view: false` drops all privileges of the rule, and `modify`
-  is not granted without `view`.
+- **What:** only `privs.view` and `privs.modify` are applied, and `view` is **not** implied: set
+  `view: true` explicitly. `{ "modify": true }` alone saves a rule with no privileges, and the
+  call still returns a `taskId`. The other privileges of an existing rule stay as they are;
+  `view: false` drops all of them but keeps the grantee in the list. To revoke access, use
+  `action: "delete"`.
 - **The form owner's rule** (the system user, `userId` 0) is read-only: changing or deleting it
   returns **400**. Leave it out of `rules`.
 
@@ -126,8 +129,9 @@ saveTemplateActorsAccess(objId="12", rules=[
 ## Bulk
 
 `bulkSaveAccessRules` checks every item as its own call would (a `templateActors` item of a
-system form follows the rules above) and validates all items before saving any: one invalid item
-fails the whole call and nothing is applied.
+system form follows the rules above). Validation is all-or-nothing: all items are validated before
+any is saved, so one invalid item fails the whole call and nothing is saved. The items are then
+saved one by one, so a failure while saving leaves the earlier items applied.
 
 ```
 # Many objects at once (≤50), each with its own rules:
@@ -176,7 +180,7 @@ requestAccess(objType="actor", objId="<actor UUID>", modify=true)   # request vi
 
 - A save returns a **`taskId`** (applied async); the change may take a moment to fully propagate.
 - Identify the grantee by **exactly one** of `userId` / `saId` / `groupId`.
-- `privs.view/modify/remove` are required; `sign`/`ds`/`execute` optional. Setting any privilege implies `view`.
+- `privs.view/modify/remove` are required; `sign`/`ds`/`execute` optional. Setting any privilege implies `view`, except in the actors access of a system form, where `view` must be explicit.
 - `reactionOrders` is optional — a single executor needs only `execute:true`.
 - `recursive=false` ⇒ this object only; `notify=false` ⇒ no notifications (both honoured).
 - **Blocked by access?** Use `requestAccess(objType, objId)` — it asks the owner (doesn't grant); approval is needed before retrying. It's the one access tool callable without `view`.

@@ -720,8 +720,8 @@ Enables SMS notification capabilities through various SMS gateway providers.
 A rule in the actors access of a system form (`saveTemplateActorsAccess`, objType
 `templateActors`) gives its grantee access to every actor of the form, existing and new. Only
 workspace users with the `system_actors:management` permission (owner and admin roles) manage it,
-and only API keys can be added; only `view`/`modify` change, and the rule of the form owner (the
-system user, `userId` 0) is read-only. See the `simulator-access` skill for the full rules.
+and only API keys can be added; only `view`/`modify` change (`view` is not implied, set it
+explicitly), and the rule of the form owner (the system user, `userId` 0) is read-only. See the `simulator-access` skill for the full rules.
 
 ## API Endpoints
 

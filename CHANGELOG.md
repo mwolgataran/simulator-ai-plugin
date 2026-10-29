@@ -38,8 +38,10 @@
   API key); anything else is refused with 400 / 403.
 - `saveTemplateActorsAccess` / simulator-access skill: documents pong-server's actors access of
   system forms — only users with `system_actors:management` (owner/admin) manage it,
-  only API keys can be added, only view/modify are applied (view=false drops the rule's privileges),
-  the system user's rule is read-only. `bulkSaveAccessRules` validates every item before saving any.
+  only API keys can be added, only view/modify are applied and `view` must be set explicitly
+  (view=false drops the rule's privileges, revoke with delete), the system user's rule is read-only.
+  `saveAccessRules` with objType `templateActors` points to these rules. `bulkSaveAccessRules`
+  validation is all-or-nothing; the items are then saved one by one.
   Drift-gate spec carries the route's new description.
 
 ### Fixed

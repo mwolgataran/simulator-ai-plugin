@@ -738,7 +738,8 @@
         "tool": "saveTemplateActorsAccess",
         "mustContain": [
           "7001",
-          "\"view\""
+          "\"create\"",
+          "\"view\":true"
         ]
       }
     ]
